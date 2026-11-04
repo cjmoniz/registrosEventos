@@ -24,16 +24,33 @@ const SESION_HORAS = 12;
 export const MAX_INTENTOS = 5;
 export const BLOQUEO_MIN = 15;
 
-function env(name) {
-  const v = process.env[name];
-  if (!v) throw new Error(`Falta variable de entorno ${name}`);
-  return v;
+function env(name, ...alternativas) {
+  for (const n of [name, ...alternativas]) {
+    if (process.env[n]) return process.env[n];
+  }
+  throw new Error(`Falta variable de entorno ${[name, ...alternativas].join(' o ')}`);
+}
+
+/** Tipo de clave de Supabase, sin revelarla (solo para diagnóstico en logs). */
+function tipoClave(k) {
+  if (k.startsWith('sb_secret_')) return 'secret (correcta)';
+  if (k.startsWith('sb_publishable_')) return 'publishable (INCORRECTA: usa la secret / service_role)';
+  try {
+    const rol = JSON.parse(Buffer.from(k.split('.')[1], 'base64url').toString()).role;
+    return rol === 'service_role' ? 'JWT service_role (correcta)' : `JWT ${rol} (INCORRECTA: usa service_role)`;
+  } catch {
+    return 'desconocida';
+  }
 }
 
 let _db;
 export function db() {
   if (!_db) {
-    _db = createClient(env('SUPABASE_URL'), env('SUPABASE_SERVICE_ROLE_KEY'), {
+    // Acepta los nombres que define la integración de Supabase en Vercel.
+    const url = env('SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL');
+    const clave = env('SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SECRET_KEY');
+    console.log('supabase: clave tipo', tipoClave(clave));
+    _db = createClient(url, clave, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
   }
