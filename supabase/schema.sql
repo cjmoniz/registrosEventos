@@ -45,3 +45,8 @@ create index if not exists registros_email_idx  on public.registros (lower(email
 alter table public.equipo    enable row level security;
 alter table public.registros enable row level security;
 revoke all on public.equipo, public.registros from anon, authenticated;
+
+-- Permisos explícitos para la API (service_role). Proyectos nuevos de Supabase
+-- no los conceden automáticamente a tablas creadas por SQL.
+grant usage on schema public to service_role;
+grant select, insert, update, delete on public.equipo, public.registros to service_role;
