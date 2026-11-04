@@ -19,7 +19,7 @@ SPA para capturar contactos de empresas en eventos. Frontend estático (`public/
 1. **Supabase**: crea proyecto y ejecuta `supabase/schema.sql` en el SQL Editor (si ya lo habías corrido, vuelve a correrlo: agrega la columna `proximos_pasos`).
 2. **Variables**: `cp .env.example .env` y complétalo (`openssl rand -hex 32` para `SESSION_SECRET` y `PIN_PEPPER`).
 3. **Dependencias**: `npm install`
-4. **Alta del equipo** (pide el PIN por consola):
+4. **Alta del equipo**: recomendado desde Supabase > SQL Editor con `supabase/alta-miembro.sql` (no requiere secretos en tu equipo). Alternativa local con `.env` (pide el PIN por consola):
    ```bash
    npm run alta -- cmoniz "Carlos Moniz" admin
    npm run alta -- ana "Ana Pérez"
