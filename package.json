@@ -1,0 +1,13 @@
+{
+  "name": "registro-contactos-eventos",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "vercel dev",
+    "alta": "node --env-file=.env scripts/alta-miembro.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}

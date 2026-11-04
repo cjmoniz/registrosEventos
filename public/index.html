@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#0a1830">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CaVeCeCo">
+<title>Evento CaVeCeCo · Registro de contactos</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+
+<!-- Íconos (trazo único 1.75) -->
+<svg class="sprite" width="0" height="0" aria-hidden="true">
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></symbol>
+</svg>
+
+<!-- ============ LOGIN ============ -->
+<section id="view-login" hidden>
+  <form id="loginForm" class="card login" novalidate autocomplete="off">
+    <img src="/logo.png" alt="Biopago" class="logo">
+    <h1>Evento CaVeCeCo</h1>
+    <p class="muted">Registro de contactos. Ingresa con tu usuario y PIN del equipo.</p>
+    <label for="alias">Usuario</label>
+    <input id="alias" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" required>
+    <label for="pin">PIN</label>
+    <input id="pin" type="password" inputmode="numeric" pattern="\d*" maxlength="8" enterkeyhint="go" required>
+    <div class="err" id="loginErr" role="alert"></div>
+    <button type="submit" class="btn primary">Entrar</button>
+  </form>
+</section>
+
+<!-- ============ APP ============ -->
+<div id="view-app" hidden>
+  <header>
+    <div class="head-row">
+      <div class="brand">
+        <img src="/logo.png" alt="Biopago" class="logo">
+        <div>
+          <input id="eventName" type="text" placeholder="Nombre del evento" aria-label="Nombre del evento">
+          <div class="muted small"><span id="userName"></span> · <button class="link" id="logoutBtn">Salir</button></div>
+        </div>
+      </div>
+      <div class="count"><b id="countNum">0</b> registros<div id="pendingBadge" class="pending" hidden></div></div>
+    </div>
+    <nav role="tablist">
+      <button role="tab" aria-selected="true" data-view="form">Nuevo registro</button>
+      <button role="tab" aria-selected="false" data-view="list">Registros</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="view-form">
+      <!-- Confirmación de guardado + atajo para otra persona de la misma empresa -->
+      <div id="savedBar" class="saved-bar" role="status" hidden>
+        <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+        <span class="saved-text" id="savedText"></span>
+        <button type="button" class="btn sm accent" id="sameCoBtn">
+          <svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg><span id="sameCoLabel">Otro de esta empresa</span>
+        </button>
+      </div>
+
+      <form id="form" class="card" novalidate autocomplete="off">
+        <div class="grid">
+          <div class="full">
+            <label for="empresa">Empresa <span class="req">*</span></label>
+            <input id="empresa" type="text" list="empresasList" autocapitalize="words" maxlength="160" enterkeyhint="next">
+            <datalist id="empresasList"></datalist>
+            <div class="err" data-for="empresa"></div>
+          </div>
+          <div class="full">
+            <label for="contacto">Contacto <span class="req">*</span></label>
+            <input id="contacto" type="text" autocapitalize="words" maxlength="160" enterkeyhint="next">
+            <div class="err" data-for="contacto"></div>
+          </div>
+          <div>
+            <label for="email">Email</label>
+            <input id="email" type="email" inputmode="email" maxlength="254" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next">
+            <div class="err" data-for="email"></div>
+          </div>
+          <div>
+            <label for="telefono">Teléfono</label>
+            <input id="telefono" type="tel" inputmode="tel" maxlength="40" placeholder="+58 412 000 0000" enterkeyhint="next">
+            <div class="err" data-for="telefono"></div>
+          </div>
+          <div class="full warn-inline" id="dupWarn" role="status" hidden>
+            <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg><span id="dupText"></span>
+          </div>
+          <div class="full">
+            <label for="cargo">Cargo</label>
+            <input id="cargo" type="text" autocapitalize="words" maxlength="120" enterkeyhint="done">
+            <div class="pills chips" id="cargoChips" aria-label="Cargos frecuentes"></div>
+          </div>
+          <div class="full">
+            <label id="catLabel">Categorías de conversación</label>
+            <div class="pills" id="pills" role="group" aria-labelledby="catLabel"></div>
+          </div>
+          <div class="full">
+            <label id="pasoLabel">Próximo paso</label>
+            <div class="pills" id="pasos" role="group" aria-labelledby="pasoLabel"></div>
+          </div>
+          <div class="full">
+            <div class="obs-head">
+              <label for="observaciones">Observaciones</label>
+              <div class="obs-tools">
+                <button type="button" class="btn sm" id="dictBtn" hidden>
+                  <svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg><span>Dictar</span>
+                </button>
+                <button type="button" class="btn sm" id="txtBtn">
+                  <svg class="ic" aria-hidden="true"><use href="#i-file"/></svg><span>Cargar transcripción</span>
+                </button>
+                <input type="file" id="txtFile" accept=".txt,.vtt,.srt,text/plain" hidden>
+              </div>
+            </div>
+            <textarea id="observaciones" maxlength="4000" placeholder="Lo particular de la conversación. Puedes dictar o cargar la transcripción de una nota de voz."></textarea>
+            <div class="muted small right"><span id="obsCount">0</span>/4000</div>
+            <div class="err" data-for="observaciones"></div>
+          </div>
+        </div>
+        <div class="save-bar">
+          <button type="button" class="btn" id="clearBtn">Limpiar</button>
+          <button type="submit" class="btn primary">Guardar registro</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="view-list" hidden>
+      <div class="toolbar">
+        <input id="search" type="search" placeholder="Buscar empresa, contacto, email…" aria-label="Buscar">
+        <label class="chk"><input type="checkbox" id="onlyEvent" checked> Solo este evento</label>
+        <button class="btn" id="exportBtn" hidden>Exportar CSV</button>
+      </div>
+      <div class="pills filters" id="filters" role="group" aria-label="Filtrar por categoría"></div>
+      <div class="stats muted small" id="stats"></div>
+      <div class="list" id="list"></div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="/app.js"></script>
+</body>
+</html>
