@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     .select('id, alias, nombre, rol, activo, pin_hash, intentos_fallidos, bloqueado_hasta')
     .eq('alias', alias)
     .maybeSingle();
-  if (error) return enviar(res, 500, { error: 'Error del servidor' });
+  if (error) { console.error('login: consulta equipo', error.code, error.message); return enviar(res, 500, { error: 'Error del servidor' }); }
 
   const hash = hashPin(alias, pin); // se calcula siempre: tiempo de respuesta similar exista o no el alias
   if (!m || !m.activo) return enviar(res, 401, NO_VALIDO);

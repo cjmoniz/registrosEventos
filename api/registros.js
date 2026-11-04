@@ -62,7 +62,7 @@ export default async function handler(req, res) {
     const evento = String(req.query.evento || '').trim();
     if (evento) q = q.eq('evento', evento);
     const { data, error } = await q;
-    if (error) return enviar(res, 500, { error: 'Error al leer registros' });
+    if (error) { console.error('registros GET', error.code, error.message); return enviar(res, 500, { error: 'Error al leer registros' }); }
     return enviar(res, 200, data.map(salida));
   }
 
@@ -80,7 +80,7 @@ export default async function handler(req, res) {
     };
     // Idempotente: si el dispositivo reintenta el mismo id, no duplica.
     const { error } = await db().from('registros').upsert(fila, { onConflict: 'id', ignoreDuplicates: true });
-    if (error) return enviar(res, 500, { error: 'Error al guardar' });
+    if (error) { console.error('registros POST', error.code, error.message); return enviar(res, 500, { error: 'Error al guardar' }); }
     return enviar(res, 201, { ok: true, id: r.id });
   }
 
@@ -90,7 +90,7 @@ export default async function handler(req, res) {
     let q = db().from('registros').delete({ count: 'exact' }).eq('id', id);
     if (m.rol !== 'admin') q = q.eq('registrado_por', m.id); // solo los propios
     const { error, count } = await q;
-    if (error) return enviar(res, 500, { error: 'Error al eliminar' });
+    if (error) { console.error('registros DELETE', error.code, error.message); return enviar(res, 500, { error: 'Error al eliminar' }); }
     if (!count) return enviar(res, 404, { error: 'No encontrado o sin permiso' });
     return enviar(res, 200, { ok: true });
   }

@@ -132,6 +132,7 @@ export async function requerirMiembro(req, res) {
     .select('id, alias, nombre, rol, activo')
     .eq('id', p.sub)
     .maybeSingle();
+  if (error) console.error('sesion: consulta equipo', error.code, error.message);
   if (error || !data || !data.activo) {
     cerrarSesion(res);
     enviar(res, 401, { error: 'Sesión no válida' });
