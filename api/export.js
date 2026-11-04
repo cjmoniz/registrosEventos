@@ -22,7 +22,8 @@ export default async function handler(req, res) {
   const { data, error } = await q;
   if (error) { console.error('export', error.code, error.message); return enviar(res, 500, { error: 'Error al exportar' }); }
 
-  const head = ['Fecha', 'Evento', 'Empresa', 'Contacto', 'Cargo', 'Teléfono', 'Email', ...CATEGORIAS, 'Categorías', 'Próximo paso', 'Observaciones', 'Registrado por'];  const filas = data.map((r) => [
+  const head = ['Fecha', 'Evento', 'Empresa', 'Contacto', 'Cargo', 'Teléfono', 'Email', ...CATEGORIAS, 'Categorías', 'Próximo paso', 'Observaciones', 'Registrado por'];
+  const filas = data.map((r) => [
     new Date(r.capturado_en).toLocaleString('es-VE', { timeZone: process.env.TZ_EVENTO || 'America/Caracas' }),
     r.evento, r.empresa, r.contacto, r.cargo, r.telefono, r.email,
     ...CATEGORIAS.map((c) => (r.categorias?.includes(c) ? 'Sí' : '')),
