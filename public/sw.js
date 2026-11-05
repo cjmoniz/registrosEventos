@@ -1,5 +1,5 @@
 // Service worker: la app abre sin conexión. Nunca cachea /api (datos y sesión).
-const VERSION = 'rc-v5';
+const VERSION = 'rc-v6';
 const SHELL = ['/', '/app.css', '/app.js', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/apple-touch-icon.png', '/logo.png'];
 
 self.addEventListener('install', (e) => {

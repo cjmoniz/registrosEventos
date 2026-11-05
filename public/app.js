@@ -44,12 +44,14 @@
     let data = null;
     try { data = await res.json(); } catch {}
     if (res.status === 401 && path !== '/api/login') sesionExpirada();
+    if (res.status === 403 && data?.codigo === 'PIN_PENDIENTE') pedirCambioPin(true);
     return { ok: res.ok, status: res.status, data };
   }
 
   // ---------- vistas ----------
   function mostrar(vista) {
     $('#view-login').hidden = vista !== 'login';
+    $('#view-pin').hidden = vista !== 'pin';
     $('#view-app').hidden = vista !== 'app';
     if (vista === 'app') mantenerPantalla(); else soltarPantalla();
   }
@@ -57,7 +59,9 @@
     document.querySelectorAll('nav button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.view === v)));
     $('#view-form').hidden = v !== 'form';
     $('#view-list').hidden = v !== 'list';
+    $('#view-equipo').hidden = v !== 'equipo';
     if (v === 'list') cargarLista();
+    if (v === 'equipo') cargarEquipo();
   }
   document.querySelectorAll('nav button').forEach((b) => b.addEventListener('click', () => tab(b.dataset.view)));
 
@@ -115,6 +119,7 @@
     if (!r.ok) { ls.del(ME_KEY); mostrar('login'); return; }
     ls.set(ME_KEY, r.data);
     arrancar(r.data);
+    if (me.debe_cambiar_pin) return;
     sincronizar();
     cargarLista(true);
   }
@@ -125,6 +130,7 @@
     PASOS = me.proximos_pasos || [];
     $('#userName').textContent = me.nombre;
     $('#exportBtn').hidden = me.rol !== 'admin';
+    $('#tabEquipo').hidden = me.rol !== 'admin';
     renderPills();
     renderFiltros();
     renderCargos();
@@ -133,6 +139,7 @@
     tab('form');
     actualizarContadores();
     actualizarEmpresas();
+    if (me.debe_cambiar_pin) pedirCambioPin(true);
   }
 
   // ---------- evento ----------
@@ -612,6 +619,195 @@
   // App instalable + funciona sin conexión
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  }
+
+  // ---------- cambio de PIN ----------
+  let pinObligatorio = false;
+  const pinObvio = (p) => /^(\d)\1+$/.test(p) || '0123456789'.includes(p) || '9876543210'.includes(p);
+
+  function pedirCambioPin(obligatorio) {
+    pinObligatorio = obligatorio;
+    $('#pinForm').reset();
+    $('#pinErr').textContent = '';
+    $('#pinMsg').textContent = obligatorio
+      ? `Hola ${me?.nombre?.split(' ')[0] || ''}. Tu PIN es temporal: elige uno propio para continuar.`
+      : 'Elige un PIN nuevo de 4 a 8 dígitos.';
+    $('#pinActualLabel').textContent = obligatorio ? 'PIN temporal que te dieron' : 'PIN actual';
+    $('#pinCancel').hidden = obligatorio;
+    $('#pinSalir').hidden = !obligatorio;
+    mostrar('pin');
+    $('#pinActual').focus();
+  }
+  $('#miPinBtn').addEventListener('click', () => pedirCambioPin(false));
+  $('#pinCancel').addEventListener('click', () => mostrar('app'));
+  $('#pinSalir').addEventListener('click', () => $('#logoutBtn').click());
+  ['pinActual', 'pinNuevo'].forEach((id, i, arr) => {
+    $('#' + id).addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); $('#' + (arr[i + 1] || 'pinNuevo2')).focus(); }
+    });
+  });
+
+  $('#pinForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const actual = $('#pinActual').value.trim();
+    const nuevo = $('#pinNuevo').value.trim();
+    const err = (m) => { $('#pinErr').textContent = m; };
+    if (!/^\d{4,8}$/.test(actual)) return err('Escribe tu PIN actual.');
+    if (!/^\d{4,8}$/.test(nuevo)) return err('El PIN nuevo debe tener de 4 a 8 dígitos.');
+    if (pinObvio(nuevo)) return err('Ese PIN es muy fácil de adivinar. Evita repetidos o secuencias.');
+    if (nuevo !== $('#pinNuevo2').value.trim()) return err('Los dos PIN nuevos no coinciden.');
+    if (nuevo === actual) return err('El PIN nuevo debe ser distinto del actual.');
+    const btn = e.target.querySelector('button[type=submit]');
+    btn.disabled = true;
+    try {
+      const r = await api('/api/pin', { method: 'POST', body: { actual, nuevo } });
+      if (!r.ok) { err(r.data?.error || 'No se pudo cambiar el PIN.'); return; }
+      const eraObligatorio = pinObligatorio;
+      me.debe_cambiar_pin = false;
+      ls.set(ME_KEY, me);
+      $('#pinForm').reset();
+      mostrar('app');
+      toast('PIN actualizado');
+      if (eraObligatorio) { sincronizar(); cargarLista(true); }
+    } catch {
+      err('Sin conexión. Para cambiar el PIN se necesita internet.');
+    } finally { btn.disabled = false; }
+  });
+
+  // ---------- equipo (solo admin) ----------
+  let equipo = [];
+  let eqRol = 'miembro';
+  let aliasTocado = false;
+
+  const sinAcentos = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '');
+  function sugerirAlias(nombre) {
+    const partes = sinAcentos(nombre).toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/).filter(Boolean);
+    if (partes.length < 2) return partes[0] || '';
+    // Inicial del nombre + último apellido, saltando partículas (de, del, la…)
+    const particulas = new Set(['de', 'del', 'la', 'las', 'los', 'y']);
+    const apellidos = partes.slice(1).filter((x) => !particulas.has(x));
+    return (partes[0][0] + (apellidos[apellidos.length - 1] || partes[1])).slice(0, 32);
+  }
+  $('#eqNombre').addEventListener('input', () => {
+    if (!aliasTocado) $('#eqAlias').value = sugerirAlias($('#eqNombre').value);
+  });
+  $('#eqAlias').addEventListener('input', () => {
+    aliasTocado = $('#eqAlias').value.trim() !== '';
+    $('#eqAlias').value = $('#eqAlias').value.toLowerCase().replace(/\s+/g, '');
+  });
+  $('#eqPin').addEventListener('input', () => { $('#eqPin').value = $('#eqPin').value.replace(/\D/g, ''); });
+  [['eqNombre', 'eqAlias'], ['eqAlias', 'eqPin']].forEach(([a, b]) => {
+    $('#' + a).addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('#' + b).focus(); } });
+  });
+  $('#eqRol').querySelectorAll('.pill').forEach((b) => b.addEventListener('click', () => {
+    eqRol = b.dataset.rol;
+    $('#eqRol').querySelectorAll('.pill').forEach((x) => {
+      const on = x.dataset.rol === eqRol;
+      x.setAttribute('aria-pressed', String(on));
+      x.setAttribute('aria-checked', String(on));
+    });
+  }));
+
+  function mostrarPinTemporal(m, pin) {
+    $('#pinAvisoQuien').textContent = `PIN temporal de ${m.nombre} (${m.alias})`;
+    $('#pinAvisoNum').textContent = pin;
+    $('#pinAviso').hidden = false;
+    $('#pinAviso').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+  $('#pinCerrar').addEventListener('click', () => { $('#pinAviso').hidden = true; $('#pinAvisoNum').textContent = ''; });
+  $('#pinCopiar').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('#pinAvisoNum').textContent); toast('PIN copiado'); }
+    catch { toast('No se pudo copiar'); }
+  });
+
+  $('#equipoForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nombre = $('#eqNombre').value.trim().replace(/\s+/g, ' ');
+    const alias = $('#eqAlias').value.trim().toLowerCase();
+    const pin = $('#eqPin').value.trim();
+    const err = (m) => { $('#eqErr').textContent = m; };
+    err('');
+    if (!nombre) return err('Escribe el nombre.');
+    if (!/^[a-z0-9._-]{2,32}$/.test(alias)) return err('Usuario inválido: 2 a 32 caracteres, solo a-z, 0-9, punto o guion.');
+    if (pin && !/^\d{4,8}$/.test(pin)) return err('El PIN inicial debe tener de 4 a 8 dígitos, o déjalo vacío.');
+    const btn = e.target.querySelector('button[type=submit]');
+    btn.disabled = true;
+    try {
+      const r = await api('/api/equipo', { method: 'POST', body: { nombre, alias, pin, rol: eqRol } });
+      if (!r.ok) return err(r.data?.error || 'No se pudo agregar.');
+      $('#equipoForm').reset();
+      aliasTocado = false;
+      $('#eqRol .pill[data-rol=miembro]').click();
+      equipo.push(r.data.miembro);
+      renderEquipo();
+      mostrarPinTemporal(r.data.miembro, r.data.pin_temporal);
+      $('#eqNombre').focus();
+    } catch { err('Sin conexión.'); }
+    finally { btn.disabled = false; }
+  });
+
+  async function cargarEquipo() {
+    if (me?.rol !== 'admin') return;
+    try {
+      const r = await api('/api/equipo');
+      if (r.ok) { equipo = r.data; renderEquipo(); }
+      else if (r.status !== 401 && r.status !== 403) toast('No se pudo cargar el equipo');
+    } catch { toast('Sin conexión'); }
+  }
+
+  async function accionEquipo(m, accion, extra = {}) {
+    const r = await api(`/api/equipo?id=${encodeURIComponent(m.id)}`, { method: 'PATCH', body: { accion, ...extra } }).catch(() => null);
+    if (!r) { toast('Sin conexión'); return; }
+    if (!r.ok) { toast(r.data?.error || 'No se pudo actualizar'); return; }
+    equipo = equipo.map((x) => (x.id === m.id ? r.data.miembro : x));
+    renderEquipo();
+    if (r.data.pin_temporal) mostrarPinTemporal(r.data.miembro, r.data.pin_temporal);
+    else toast('Actualizado');
+  }
+
+  function renderEquipo() {
+    const orden = [...equipo].sort((a, b) => (b.activo - a.activo) || a.nombre.localeCompare(b.nombre, 'es'));
+    const activos = equipo.filter((m) => m.activo).length;
+    $('#eqCount').textContent = `${activos} activo${activos === 1 ? '' : 's'} de ${equipo.length}`;
+    $('#equipoList').replaceChildren(...orden.map((m) => {
+      const yo = m.id === me.id;
+      const bloqueado = m.bloqueado_hasta && new Date(m.bloqueado_hasta) > new Date();
+      const card = el('article', 'card item miembro' + (m.activo ? '' : ' inactivo'));
+      const head = el('div', 'row');
+      const info = el('div');
+      info.append(el('h3', null, m.nombre + (yo ? ' (tú)' : '')));
+      info.append(el('div', 'meta', `${m.alias} · ${m.rol === 'admin' ? 'Admin' : 'Miembro'}`));
+      head.append(info);
+      card.append(head);
+
+      const tags = el('div', 'tags');
+      if (!m.activo) tags.append(el('span', 'tag off', 'Inactivo'));
+      if (m.debe_cambiar_pin) tags.append(el('span', 'tag warn', 'PIN temporal'));
+      if (bloqueado) tags.append(el('span', 'tag warn', 'Bloqueado'));
+      if (tags.childElementCount) card.append(tags);
+
+      const acc = el('div', 'miembro-acc');
+      const boton = (txt, fn, cls) => { const b = el('button', 'btn sm' + (cls ? ' ' + cls : ''), txt); b.type = 'button'; b.addEventListener('click', fn); acc.append(b); };
+      if (!yo) {
+        if (m.activo) boton('Resetear PIN', () => {
+          if (confirm(`¿Generar un PIN temporal nuevo para ${m.nombre}? Su PIN actual dejará de funcionar.`)) accionEquipo(m, 'reset_pin');
+        });
+        if (bloqueado) boton('Desbloquear', () => accionEquipo(m, 'desbloquear'));
+        boton(m.rol === 'admin' ? 'Hacer miembro' : 'Hacer admin', () => {
+          const rol = m.rol === 'admin' ? 'miembro' : 'admin';
+          if (confirm(`¿Cambiar a ${m.nombre} a ${rol}?`)) accionEquipo(m, 'rol', { rol });
+        });
+        boton(m.activo ? 'Desactivar' : 'Activar', () => {
+          if (!m.activo || confirm(`¿Desactivar a ${m.nombre}? No podrá entrar hasta que lo reactives.`)) {
+            accionEquipo(m, m.activo ? 'desactivar' : 'activar');
+          }
+        }, m.activo ? 'danger-ghost' : '');
+      } else {
+        boton('Cambiar mi PIN', () => pedirCambioPin(false));
+      }
+      card.append(acc);
+      return card;
+    }));
   }
 
   iniciar();

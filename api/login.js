@@ -1,7 +1,5 @@
-import { db, hashPin, igualSeguro, abrirSesion, enviar, origenValido, publico, MAX_INTENTOS, BLOQUEO_MIN } from './_lib.js';
+import { db, hashPin, comprobarPin, abrirSesion, enviar, origenValido, publico, ALIAS_RE, PIN_RE } from './_lib.js';
 
-const ALIAS_RE = /^[a-z0-9._-]{2,32}$/;
-const PIN_RE = /^\d{4,8}$/;
 const NO_VALIDO = { error: 'Usuario o PIN incorrecto' };
 
 export default async function handler(req, res) {
@@ -14,34 +12,18 @@ export default async function handler(req, res) {
 
   const { data: m, error } = await db()
     .from('equipo')
-    .select('id, alias, nombre, rol, activo, pin_hash, intentos_fallidos, bloqueado_hasta')
+    .select('id, alias, nombre, rol, activo, pin_hash, intentos_fallidos, bloqueado_hasta, debe_cambiar_pin')
     .eq('alias', alias)
     .maybeSingle();
   if (error) { console.error('login: consulta equipo', error.code, error.message); return enviar(res, 500, { error: 'Error del servidor' }); }
 
-  const hash = hashPin(alias, pin); // se calcula siempre: tiempo de respuesta similar exista o no el alias
-  if (!m || !m.activo) return enviar(res, 401, NO_VALIDO);
-
-  if (m.bloqueado_hasta && new Date(m.bloqueado_hasta) > new Date()) {
-    return enviar(res, 429, { error: `Demasiados intentos. Prueba de nuevo en ${BLOQUEO_MIN} minutos.` });
-  }
-
-  if (!igualSeguro(hash, m.pin_hash)) {
-    const intentos = (m.intentos_fallidos || 0) + 1;
-    const bloquear = intentos >= MAX_INTENTOS;
-    await db()
-      .from('equipo')
-      .update({
-        intentos_fallidos: bloquear ? 0 : intentos,
-        bloqueado_hasta: bloquear ? new Date(Date.now() + BLOQUEO_MIN * 60000).toISOString() : null,
-      })
-      .eq('id', m.id);
+  if (!m || !m.activo) {
+    hashPin(alias, pin); // tiempo de respuesta similar exista o no el alias
     return enviar(res, 401, NO_VALIDO);
   }
+  const fallo = await comprobarPin(m, pin);
+  if (fallo) return enviar(res, fallo.status, { error: fallo.error });
 
-  if (m.intentos_fallidos || m.bloqueado_hasta) {
-    await db().from('equipo').update({ intentos_fallidos: 0, bloqueado_hasta: null }).eq('id', m.id);
-  }
   abrirSesion(res, m);
   return enviar(res, 200, publico(m));
 }

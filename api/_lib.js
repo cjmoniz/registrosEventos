@@ -68,6 +68,44 @@ export function igualSeguro(aHex, bHex) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
+export const ALIAS_RE = /^[a-z0-9._-]{2,32}$/;
+export const PIN_RE = /^\d{4,8}$/;
+
+/** PIN fácil de adivinar: repetido (000000) o secuencial (123456 / 654321). */
+export function pinObvio(pin) {
+  return /^(\d)\1+$/.test(pin) || '0123456789'.includes(pin) || '9876543210'.includes(pin);
+}
+
+/** PIN temporal aleatorio de 6 dígitos (no obvio). */
+export function pinTemporal() {
+  let p;
+  do { p = String(crypto.randomInt(0, 1000000)).padStart(6, '0'); } while (pinObvio(p));
+  return p;
+}
+
+/**
+ * Verifica el PIN de un miembro aplicando el bloqueo por intentos.
+ * Devuelve null si es correcto, o { status, error } para responder.
+ */
+export async function comprobarPin(m, pin) {
+  if (m.bloqueado_hasta && new Date(m.bloqueado_hasta) > new Date()) {
+    return { status: 429, error: `Demasiados intentos. Prueba de nuevo en ${BLOQUEO_MIN} minutos.` };
+  }
+  if (!PIN_RE.test(pin) || !igualSeguro(hashPin(m.alias, pin), m.pin_hash)) {
+    const intentos = (m.intentos_fallidos || 0) + 1;
+    const bloquear = intentos >= MAX_INTENTOS;
+    await db().from('equipo').update({
+      intentos_fallidos: bloquear ? 0 : intentos,
+      bloqueado_hasta: bloquear ? new Date(Date.now() + BLOQUEO_MIN * 60000).toISOString() : null,
+    }).eq('id', m.id);
+    return { status: 401, error: 'Usuario o PIN incorrecto' };
+  }
+  if (m.intentos_fallidos || m.bloqueado_hasta) {
+    await db().from('equipo').update({ intentos_fallidos: 0, bloqueado_hasta: null }).eq('id', m.id);
+  }
+  return null;
+}
+
 // ---------- Token de sesión (HS256) ----------
 const b64u = (buf) => Buffer.from(buf).toString('base64url');
 function firmar(payload) {
@@ -134,8 +172,11 @@ export function origenValido(req) {
   return String(req.headers['content-type'] || '').startsWith('application/json');
 }
 
-/** Devuelve el miembro activo de la sesión o responde 401 y devuelve null. */
-export async function requerirMiembro(req, res) {
+/**
+ * Devuelve el miembro activo de la sesión o responde y devuelve null.
+ * Con PIN temporal pendiente de cambio solo se permiten las rutas que lo indiquen.
+ */
+export async function requerirMiembro(req, res, { pinPendienteOk = false } = {}) {
   if (!origenValido(req)) {
     enviar(res, 403, { error: 'Origen no permitido' });
     return null;
@@ -147,7 +188,7 @@ export async function requerirMiembro(req, res) {
   }
   const { data, error } = await db()
     .from('equipo')
-    .select('id, alias, nombre, rol, activo')
+    .select('id, alias, nombre, rol, activo, debe_cambiar_pin')
     .eq('id', p.sub)
     .maybeSingle();
   if (error) console.error('sesion: consulta equipo', error.code, error.message);
@@ -156,7 +197,22 @@ export async function requerirMiembro(req, res) {
     enviar(res, 401, { error: 'Sesión no válida' });
     return null;
   }
+  if (data.debe_cambiar_pin && !pinPendienteOk) {
+    enviar(res, 403, { error: 'Debes cambiar tu PIN temporal', codigo: 'PIN_PENDIENTE' });
+    return null;
+  }
   return data;
 }
 
-export const publico = (m) => ({ id: m.id, alias: m.alias, nombre: m.nombre, rol: m.rol });
+/** Como requerirMiembro, pero además exige rol admin. */
+export async function requerirAdmin(req, res) {
+  const m = await requerirMiembro(req, res);
+  if (!m) return null;
+  if (m.rol !== 'admin') {
+    enviar(res, 403, { error: 'Solo administradores' });
+    return null;
+  }
+  return m;
+}
+
+export const publico = (m) => ({ id: m.id, alias: m.alias, nombre: m.nombre, rol: m.rol, debe_cambiar_pin: !!m.debe_cambiar_pin });

@@ -43,6 +43,25 @@
   </form>
 </section>
 
+<!-- ============ CAMBIO DE PIN ============ -->
+<section id="view-pin" hidden>
+  <form id="pinForm" class="card login" novalidate autocomplete="off">
+    <h1>Cambia tu PIN</h1>
+    <p class="muted" id="pinMsg">Elige un PIN nuevo de 4 a 8 dígitos.</p>
+    <label for="pinActual" id="pinActualLabel">PIN actual</label>
+    <input id="pinActual" type="password" inputmode="numeric" pattern="\d*" maxlength="8" enterkeyhint="next" autocomplete="current-password">
+    <label for="pinNuevo">PIN nuevo</label>
+    <input id="pinNuevo" type="password" inputmode="numeric" pattern="\d*" maxlength="8" enterkeyhint="next" autocomplete="new-password">
+    <label for="pinNuevo2">Repite el PIN nuevo</label>
+    <input id="pinNuevo2" type="password" inputmode="numeric" pattern="\d*" maxlength="8" enterkeyhint="go" autocomplete="new-password">
+    <p class="muted small">Evita repetidos (000000) o secuencias (123456).</p>
+    <div class="err" id="pinErr" role="alert"></div>
+    <button type="submit" class="btn primary">Guardar PIN</button>
+    <button type="button" class="btn" id="pinCancel">Volver</button>
+    <button type="button" class="link center" id="pinSalir" hidden>Salir</button>
+  </form>
+</section>
+
 <!-- ============ APP ============ -->
 <div id="view-app" hidden>
   <header>
@@ -50,7 +69,7 @@
       <img src="/logo.png" alt="Biopago" class="logo">
       <div class="count">
         <div><b id="countNum">0</b> registros</div>
-        <div class="small"><span id="userName"></span> · <button class="link" id="logoutBtn">Salir</button></div>
+        <div class="small"><span id="userName"></span> · <button class="link" id="miPinBtn">Mi PIN</button> · <button class="link" id="logoutBtn">Salir</button></div>
         <div id="pendingBadge" class="pending" hidden></div>
       </div>
     </div>
@@ -65,6 +84,7 @@
     <nav role="tablist">
       <button role="tab" aria-selected="true" data-view="form">Nuevo registro</button>
       <button role="tab" aria-selected="false" data-view="list">Registros</button>
+      <button role="tab" aria-selected="false" data-view="equipo" id="tabEquipo" hidden>Equipo</button>
     </nav>
   </header>
 
@@ -152,6 +172,52 @@
       <div class="pills filters" id="filters" role="group" aria-label="Filtrar por categoría"></div>
       <div class="stats muted small" id="stats"></div>
       <div class="list" id="list"></div>
+    </section>
+    <section id="view-equipo" hidden>
+      <div id="pinAviso" class="pin-aviso" role="status" hidden>
+        <div class="pin-aviso-txt">
+          <div id="pinAvisoQuien"></div>
+          <div class="pin-num" id="pinAvisoNum"></div>
+          <div class="muted small">Entrégaselo en persona. Al entrar, la app le pedirá elegir uno nuevo. Este PIN no se vuelve a mostrar.</div>
+        </div>
+        <div class="pin-aviso-acc">
+          <button type="button" class="btn sm" id="pinCopiar">Copiar</button>
+          <button type="button" class="btn sm" id="pinCerrar">Listo</button>
+        </div>
+      </div>
+
+      <form id="equipoForm" class="card" novalidate autocomplete="off">
+        <h2 class="sec-title">Agregar persona</h2>
+        <div class="grid">
+          <div>
+            <label for="eqNombre">Nombre</label>
+            <input id="eqNombre" type="text" autocapitalize="words" maxlength="80" enterkeyhint="next">
+          </div>
+          <div>
+            <label for="eqAlias">Usuario</label>
+            <input id="eqAlias" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="32" enterkeyhint="next">
+            <div class="muted small">Se sugiere del nombre. Solo a-z, 0-9, punto o guion.</div>
+          </div>
+          <div>
+            <label for="eqPin">PIN inicial</label>
+            <input id="eqPin" type="text" inputmode="numeric" pattern="\d*" maxlength="8" placeholder="Vacío = se genera uno" enterkeyhint="done">
+          </div>
+          <div>
+            <label id="eqRolLabel">Rol</label>
+            <div class="pills" id="eqRol" role="radiogroup" aria-labelledby="eqRolLabel">
+              <button type="button" class="pill" role="radio" data-rol="miembro" aria-pressed="true" aria-checked="true">Miembro</button>
+              <button type="button" class="pill" role="radio" data-rol="admin" aria-pressed="false" aria-checked="false">Admin</button>
+            </div>
+          </div>
+        </div>
+        <div class="err" id="eqErr" role="alert"></div>
+        <div class="form-actions">
+          <button type="submit" class="btn primary">Agregar</button>
+        </div>
+      </form>
+
+      <h2 class="sec-title list-title">Equipo <span class="muted small" id="eqCount"></span></h2>
+      <div class="list" id="equipoList"></div>
     </section>
   </main>
 </div>

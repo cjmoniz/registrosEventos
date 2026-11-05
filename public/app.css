@@ -193,3 +193,35 @@ header .logo { height: 30px; }
 .tag { background: var(--cat-soft); color: #cfe2ff; }
 .tag.paso { background: var(--paso-soft); color: #e4dcff; }
 .tag.warn { background: transparent; border: 1px solid var(--warn); color: var(--warn); }
+
+/* ---------- Cambio de PIN ---------- */
+#view-pin { padding: 0 16px; }
+.login .btn + .btn { margin-top: 0; }
+.link.center { display: block; margin: 6px auto 0; padding: 8px; }
+
+/* ---------- Equipo (admin) ---------- */
+.sec-title { font-size: 16px; margin: 0 0 12px; }
+.list-title { margin: 24px 0 10px; display: flex; align-items: baseline; gap: 8px; }
+.form-actions { display: flex; margin-top: 16px; }
+.miembro .meta { font-variant-numeric: tabular-nums; }
+.miembro.inactivo h3, .miembro.inactivo .meta { opacity: 0.55; }
+.miembro-acc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.miembro-acc .btn { min-height: 38px; }
+.btn.danger-ghost { color: var(--danger); border-color: rgba(251, 113, 133, 0.45); background: transparent; }
+.tag.off { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+
+/* PIN temporal recién generado: se muestra una sola vez */
+.pin-aviso {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  background: var(--accent-soft); border: 1px solid rgba(45, 212, 191, 0.45);
+  border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px;
+  animation: entra .28s cubic-bezier(.16, 1, .3, 1);
+}
+.pin-aviso-txt { flex: 1 1 220px; min-width: 0; }
+.pin-aviso-txt > div:first-child { font-weight: 600; }
+.pin-num {
+  font: 700 32px/1.2 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: 0.12em; color: var(--accent); margin: 4px 0; font-variant-numeric: tabular-nums;
+}
+.pin-aviso-acc { display: flex; gap: 8px; }
+@media (prefers-reduced-motion: reduce) { .pin-aviso { animation: none; } }

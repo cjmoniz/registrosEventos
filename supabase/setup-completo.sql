@@ -47,6 +47,8 @@ create table if not exists public.registros (
 
 -- Por si la tabla se creó con una versión anterior
 alter table public.registros add column if not exists proximos_pasos text[] not null default '{}';
+-- PIN temporal: obliga a cambiarlo en el primer ingreso
+alter table public.equipo add column if not exists debe_cambiar_pin boolean not null default false;
 
 create index if not exists registros_evento_idx on public.registros (evento, creado_en desc);
 create index if not exists registros_email_idx  on public.registros (lower(email));
