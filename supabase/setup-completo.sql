@@ -71,8 +71,9 @@ declare
   v_pin    text := 'CAMBIA_PIN';                  -- 4 a 8 dígitos
   v_pepper text := 'PEGA_AQUI_EL_PIN_PEPPER';     -- mismo PIN_PEPPER que en Vercel
 begin
-  if v_pin !~ '^\d{4,8}$' or v_pepper = 'PEGA_AQUI_EL_PIN_PEPPER' then
-    raise notice 'Sección 4 omitida: completa PIN (4-8 dígitos) y PIN_PEPPER para crear tu usuario.';
+  -- Se valida por formato (no por texto) para que un buscar/reemplazar no la anule.
+  if v_pin !~ '^\d{4,8}$' or v_pepper !~ '^[0-9a-f]{32,}$' then
+    raise exception 'Sección 4: PIN debe tener 4-8 dígitos y PIN_PEPPER ser el valor hex de Vercel (64 caracteres).';
     return;
   end if;
 
