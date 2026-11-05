@@ -47,8 +47,9 @@ let _db;
 export function db() {
   if (!_db) {
     // Acepta los nombres que define la integración de Supabase en Vercel.
-    const url = env('SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL');
-    const clave = env('SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SECRET_KEY');
+    // Prioridad: variables de la integración (prefijo STORAGE_) y luego las manuales.
+    const url = env('STORAGE_SUPABASE_URL', 'SUPABASE_URL', 'NEXT_PUBLIC_STORAGE_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL');
+    const clave = env('STORAGE_SUPABASE_SECRET_KEY', 'STORAGE_SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY');
     console.log('supabase: clave tipo', tipoClave(clave));
     _db = createClient(url, clave, {
       auth: { persistSession: false, autoRefreshToken: false },
