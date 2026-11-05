@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="CaVeCeCo">
-<title>Evento CaVeCeCo · Registro de contactos</title>
+<meta name="apple-mobile-web-app-title" content="Conversaciones">
+<title>Registro de Conversaciones · Evento CaVeCeCo</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -31,8 +31,9 @@
 <section id="view-login" hidden>
   <form id="loginForm" class="card login" novalidate autocomplete="off">
     <img src="/logo.png" alt="Biopago" class="logo">
-    <h1>Evento CaVeCeCo</h1>
-    <p class="muted">Registro de contactos. Ingresa con tu usuario y PIN del equipo.</p>
+    <h1>Registro de Conversaciones</h1>
+    <p class="login-meta">Evento CaVeCeCo · <time class="hoy"></time></p>
+    <p class="muted">Ingresa con tu usuario y PIN del equipo.</p>
     <label for="alias">Usuario</label>
     <input id="alias" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" required>
     <label for="pin">PIN</label>
@@ -46,14 +47,20 @@
 <div id="view-app" hidden>
   <header>
     <div class="head-row">
-      <div class="brand">
-        <img src="/logo.png" alt="Biopago" class="logo">
-        <div>
-          <input id="eventName" type="text" placeholder="Nombre del evento" aria-label="Nombre del evento">
-          <div class="muted small"><span id="userName"></span> · <button class="link" id="logoutBtn">Salir</button></div>
-        </div>
+      <img src="/logo.png" alt="Biopago" class="logo">
+      <div class="count">
+        <div><b id="countNum">0</b> registros</div>
+        <div class="small"><span id="userName"></span> · <button class="link" id="logoutBtn">Salir</button></div>
+        <div id="pendingBadge" class="pending" hidden></div>
       </div>
-      <div class="count"><b id="countNum">0</b> registros<div id="pendingBadge" class="pending" hidden></div></div>
+    </div>
+    <div class="head-info">
+      <h1 class="app-title">Registro de Conversaciones</h1>
+      <div class="head-meta">
+        <input id="eventName" type="text" placeholder="Nombre del evento" aria-label="Nombre del evento">
+        <span aria-hidden="true">·</span>
+        <time class="hoy"></time>
+      </div>
     </div>
     <nav role="tablist">
       <button role="tab" aria-selected="true" data-view="form">Nuevo registro</button>

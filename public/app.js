@@ -129,6 +129,7 @@
     renderFiltros();
     renderCargos();
     mostrar('app');
+    ajustarEvento();
     tab('form');
     actualizarContadores();
     actualizarEmpresas();
@@ -137,6 +138,25 @@
   // ---------- evento ----------
   const eventInput = $('#eventName');
   eventInput.value = ls.get(EVENT_KEY, '') || 'Evento CaVeCeCo';
+  // El campo del evento se ajusta al largo del texto (sin field-sizing en Safari)
+  const medidor = document.createElement('canvas').getContext('2d');
+  const ajustarEvento = () => {
+    medidor.font = getComputedStyle(eventInput).font;
+    const w = medidor.measureText(eventInput.value || eventInput.placeholder).width;
+    eventInput.style.width = Math.ceil(w + 1) + 'px';
+  };
+  ajustarEvento();
+  eventInput.addEventListener('input', ajustarEvento);
+
+  // Fecha de hoy, según el reloj del dispositivo; se refresca si la app queda abierta de un día a otro
+  function pintarHoy() {
+    const hoy = new Date();
+    const txt = hoy.toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' });
+    const iso = hoy.toISOString().slice(0, 10);
+    document.querySelectorAll('time.hoy').forEach((t) => { t.textContent = txt; t.dateTime = iso; });
+  }
+  pintarHoy();
+  setInterval(pintarHoy, 60000);
   eventInput.addEventListener('change', () => { ls.set(EVENT_KEY, eventInput.value.trim()); if (!$('#view-list').hidden) cargarLista(); });
 
   // ---------- pills ----------
