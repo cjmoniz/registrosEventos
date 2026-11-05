@@ -39,7 +39,7 @@ b { font-weight: 650; }
 /* Abrir el sitio */
 .abrir { display: flex; gap: 20px; align-items: stretch; }
 .abrir-txt { flex: 1; min-width: 0; }
-.abrir h2 { margin: 0 0 4px; font-size: 17px; }
+.abrir h2 { margin: 0 0 4px; font-size: 20px; letter-spacing: -0.01em; }
 .url {
   margin: 0 0 4px; font: 700 22px/1.2 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   color: var(--accent); letter-spacing: -0.01em; overflow-wrap: anywhere;
@@ -53,7 +53,7 @@ b { font-weight: 650; }
 .qr figcaption { color: #0a1830; font-weight: 700; font-size: 12px; margin-top: 6px; letter-spacing: 0.02em; }
 
 /* Encabezados de sección */
-.seccion { margin: 6px 0 0; font-size: 17px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.seccion { margin: 6px 0 0; font-size: 20px; letter-spacing: -0.01em; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .seccion span { font-size: 13px; font-weight: 500; color: var(--muted); }
 
 /* Plataformas */
