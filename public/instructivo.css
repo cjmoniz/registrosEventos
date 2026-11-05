@@ -1,0 +1,128 @@
+/* Guía rápida imprimible (1 hoja A4) con el mismo lenguaje visual de la app. */
+:root {
+  --bg: #0a1830; --surface: #0f2342; --surface-2: #132b52; --text: #e8f0fa; --muted: #93a8c6; --border: #1f3a66;
+  --accent: #2dd4bf; --accent-ink: #032420; --accent-soft: rgba(45, 212, 191, 0.14);
+  --cat: #60a5fa; --paso: #a78bfa;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: #071226; color: var(--text);
+  font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+::selection { background: rgba(45, 212, 191, 0.35); }
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.ic { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.ic.marca { fill: currentColor; stroke: none; width: 22px; height: 22px; }
+#g-android { fill: none; }
+.ic.en-linea { width: 17px; height: 17px; vertical-align: -3px; color: var(--accent); }
+.muted { color: var(--muted); }
+b { font-weight: 650; }
+
+/* Hoja */
+.hoja {
+  width: min(210mm, 100%); min-height: 297mm; margin: 24px auto; padding: 14mm 14mm 12mm;
+  background: var(--bg);
+  background-image: radial-gradient(120% 60% at 100% 0%, rgba(45, 212, 191, 0.10), transparent 60%);
+  border-radius: 14px; box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.7);
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+/* Cabecera */
+.cabecera { display: flex; align-items: center; gap: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.logo { height: 40px; width: auto; }
+.titulo h1 { margin: 0; font-size: 26px; line-height: 1.15; letter-spacing: -0.015em; }
+.titulo p { margin: 2px 0 0; color: var(--accent); font-weight: 600; font-size: 14px; }
+
+/* Abrir el sitio */
+.abrir { display: flex; gap: 20px; align-items: stretch; }
+.abrir-txt { flex: 1; min-width: 0; }
+.abrir h2 { margin: 0 0 4px; font-size: 17px; }
+.url {
+  margin: 0 0 4px; font: 700 22px/1.2 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color: var(--accent); letter-spacing: -0.01em; overflow-wrap: anywhere;
+}
+.abrir .muted { margin: 0 0 12px; font-size: 13.5px; }
+.entrar { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.entrar li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+.entrar .ic { color: var(--accent); margin-top: 1px; }
+.qr { margin: 0; flex: none; width: 150px; background: #fff; border-radius: 12px; padding: 12px 12px 8px; text-align: center; align-self: center; }
+.qr img { display: block; width: 100%; height: auto; }
+.qr figcaption { color: #0a1830; font-weight: 700; font-size: 12px; margin-top: 6px; letter-spacing: 0.02em; }
+
+/* Encabezados de sección */
+.seccion { margin: 6px 0 0; font-size: 17px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.seccion span { font-size: 13px; font-weight: 500; color: var(--muted); }
+
+/* Plataformas */
+.plataformas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.plataforma { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 14px 12px; }
+.plataforma h3 { margin: 0 0 10px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+.plataforma h3 small { font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.plataforma:first-child h3 .marca { color: var(--text); }
+.plataforma:last-child h3 .marca { color: #3ddc84; stroke: #3ddc84; fill: none; stroke-width: 1.75; }
+.pasos { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.pasos li { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; }
+.n {
+  flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 12px; margin-top: -1px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Consejos */
+.tips { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+.tip { display: flex; gap: 10px; align-items: flex-start; }
+.tip .ic { color: var(--cat); margin-top: 1px; }
+.tip:nth-child(2) .ic { color: var(--paso); }
+.tip:nth-child(3) .ic { color: var(--accent); }
+.tip:nth-child(4) .ic { color: #fbbf24; }
+.tip p { margin: 0; font-size: 13.5px; }
+
+/* Pie */
+.pie { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); font-size: 13px; }
+.pie p { margin: 0 0 2px; }
+
+/* Escala para llenar la hoja A4 (pantalla ancha e impresión) */
+@media (min-width: 641px), print {
+  .hoja { gap: 22px; padding: 16mm 16mm 13mm; }
+  .cabecera { padding-bottom: 18px; }
+  .logo { height: 46px; }
+  .titulo h1 { font-size: 31px; }
+  .titulo p { font-size: 15.5px; }
+  .abrir h2, .seccion { font-size: 19px; }
+  .url { font-size: 26px; margin-bottom: 6px; }
+  .abrir .muted { font-size: 14.5px; margin-bottom: 16px; }
+  .entrar { gap: 11px; }
+  .entrar li, .pasos li, .tip p { font-size: 15px; }
+  .qr { width: 182px; padding: 14px 14px 10px; }
+  .qr figcaption { font-size: 13px; }
+  .plataformas { gap: 16px; }
+  .plataforma { padding: 18px 18px 16px; }
+  .plataforma h3 { font-size: 18px; margin-bottom: 14px; }
+  .pasos { gap: 13px; }
+  .n { width: 25px; height: 25px; font-size: 13px; }
+  .tips { gap: 16px 22px; }
+  .tip .ic { width: 22px; height: 22px; }
+  .pie { font-size: 14px; padding-top: 14px; }
+}
+
+/* Teléfono */
+@media (max-width: 640px) {
+  body { background: var(--bg); }
+  .hoja { min-height: 0; margin: 0; padding: 20px 16px 24px; border-radius: 0; box-shadow: none; }
+  .cabecera { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .titulo h1 { font-size: 22px; }
+  .abrir { flex-direction: column-reverse; }
+  .qr { width: 160px; align-self: flex-start; }
+  .url { font-size: 19px; }
+  .plataformas, .tips { grid-template-columns: 1fr; }
+}
+
+/* Impresión: exactamente una hoja A4 */
+@page { size: A4; margin: 0; }
+@media print {
+  body { background: var(--bg); }
+  .hoja { width: 210mm; height: 297mm; min-height: 0; margin: 0; border-radius: 0; box-shadow: none; overflow: hidden; }
+}
