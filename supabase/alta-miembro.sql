@@ -1,7 +1,8 @@
 -- Alta / actualización de un miembro del equipo, desde Supabase > SQL Editor.
 -- Alternativa al script local: no requiere tener secretos en tu equipo.
 --
--- 1. Reemplaza los 4 valores de abajo.
+-- 1. Reemplaza los valores de abajo (sin buscar/reemplazar en todo el archivo).
+--    Si no devuelve ninguna fila, el PIN o el pepper no tienen el formato correcto.
 -- 2. Ejecuta. 3. Borra el PIN y el pepper del editor (no guardes la consulta).
 --
 -- PIN_PEPPER debe ser EXACTAMENTE el mismo valor cargado en Vercel.
@@ -23,7 +24,7 @@ select
   encode(extensions.hmac(alias || ':' || pin, pepper, 'sha256'), 'hex'),
   true, 0, null
 from datos
-where pin ~ '^\d{4,8}$' and pepper <> 'PEGA_AQUI_EL_PIN_PEPPER'
+where pin ~ '^\d{4,8}$' and pepper ~ '^[0-9a-f]{32,}$'  -- por formato: un buscar/reemplazar no la anula
 on conflict (alias) do update
   set nombre = excluded.nombre,
       rol = excluded.rol,
